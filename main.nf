@@ -13,7 +13,6 @@ include { VCF_PROCESSING }        from './workflows/vcf.nf'
 include { LINEAGE }               from './workflows/lineage.nf'
 include { GENERATE_SAMPLE_REPORTS } from './workflows/report.nf'
 include { FHIR }                  from './workflows/fhir.nf'
-include { VALIDATE }              from './workflows/validate_fhir.nf'
 include { UPLOAD_FHIR }           from './workflows/upload_fhir.nf'
 include { VERSIONS }              from './workflows/utils.nf'
 include { DEEPLEX }               from './workflows/deeplex.nf'
@@ -51,13 +50,6 @@ workflow {
         .first()
 
     deeplex_out = DEEPLEX(deeplex_ch, deeplex_clinical_ch)
-
-    // merged_clinical_out = MERGE_CLINICAL_DATA(
-    //    fhir_out.fhir_output, 
-    //    clinical_metadata_ch
-    //)
-    
-    // validation_out = VALIDATE(merged_clinical_out.merged_fhir)
     
     // Optional: Upload validated FHIR
     //upload_out = UPLOAD_FHIR(validation_out.validated_fhir)
