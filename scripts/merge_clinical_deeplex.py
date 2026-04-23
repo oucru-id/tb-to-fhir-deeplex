@@ -7,142 +7,8 @@ import os
 import base64
 import uuid
 from datetime import datetime, timezone
-from clinical_metadata_parser import load_clinical_metadata, find_matching_sample, get_clinical_value
 
-def create_organization_resource():
-    return {
-        "resourceType": "Organization",
-        "id": "1234",
-        "meta": {"profile": ["https://fhir.kemkes.go.id/r4/StructureDefinition/Organization"]},
-        "identifier": [{"use": "official", "system": "http://sys-ids.kemkes.go.id/organization", "value": "1234"}],
-        "active": True,
-        "type": [{"coding": [{"system": "http://terminology.kemkes.go.id/CodeSystem/organization-type", "code": "102", "display": "Pusat Kesehatan Masyarakat"}], "text": "Puskesmas"}],
-        "name": "PUSKESMAS 1",
-        "alias": ["1"],
-        "telecom": [
-            {"system": "phone", "value": "1234", "use": "work"},
-            {"system": "email", "value": "1234@gmail.com", "use": "work"}
-        ],
-        "address": [{
-            "use": "work", "type": "physical", "line": ["Jl. Raya"],
-            "city": "KAB. PURBALINGGA", "state": "JAWA TENGAH", "country": "ID",
-            "extension": [
-                {"url": "https://fhir.kemkes.go.id/r4/StructureDefinition/administrativeCode", "extension": [
-                    {"url": "province", "valueCode": "**"},
-                    {"url": "city", "valueCode": "**"},
-                    {"url": "district", "valueCode": "**"}
-                ]},
-                {"url": "http://hl7.org/fhir/StructureDefinition/geolocation", "extension": [
-                    {"url": "latitude", "valueDecimal": -11.1111},
-                    {"url": "longitude", "valueDecimal": 111.1111}
-                ]}
-            ]
-        }]
-    }
 
-def create_practitioner_resource():
-    return {
-        "resourceType": "Practitioner",
-        "id": "1234",
-        "meta": {"profile": ["https://fhir.kemkes.go.id/r4/StructureDefinition/Practitioner"]},
-        "identifier": [{"use": "official", "system": "https://fhir.kemkes.go.id/id/nik", "value": "1234"}],
-        "active": True,
-        "name": [{"use": "official", "text": "Budi"}],
-        "telecom": [{"system": "phone", "value": "+62-1234", "use": "work"}],
-        "gender": "male",
-        "birthDate": "YYYY-MM-DD",
-        "qualification": [{
-            "identifier": [{"system": "https://fhir.kemkes.go.id/id/str-kki-number", "value": "1234"}],
-            "code": {"coding": [{"system": "https://terminology.kemkes.go.id/v1-0302", "code": "STR-KKI", "display": "Surat Tanda Registrasi Dokter"}], "text": "Surat Tanda Registrasi Dokter"},
-            "period": {"start": "YYYY-MM-DD"}
-        }]
-    }
-
-def create_practitioner_role_resource():
-    return {
-        "resourceType": "PractitionerRole",
-        "id": "SPHERES-Nurse-Role",
-        "meta": {"profile": ["https://fhir.kemkes.go.id/r4/StructureDefinition/PractitionerRole"]},
-        "active": True,
-        "practitioner": {"reference": "Practitioner/1234", "display": "Budi"},
-        "organization": {"reference": "Organization/1234", "display": "PUSKESMAS 1"},
-        "code": [{"coding": [{"system": "http://snomed.info/sct", "code": "224535009", "display": "Registered nurse"}], "text": "Perawat (Noisn Ners)"}],
-        "telecom": [{"system": "phone", "value": "+62-1234", "use": "work"}]
-    }
-
-def create_patient_resource(sample_id, clinical_data):
-    family_name = get_clinical_value(clinical_data, 'family_name')
-    given_name = get_clinical_value(clinical_data, 'given_name')
-    gender = get_clinical_value(clinical_data, 'gender', 'unknown').lower()
-    birth_date = get_clinical_value(clinical_data, 'birth_date')
-    nik = get_clinical_value(clinical_data, 'nik')
-    
-    if gender in ['laki-laki', 'pria', 'male', 'm']: gender = "male"
-    elif gender in ['perempuan', 'wanita', 'female', 'f']: gender = "female"
-    else: gender = "unknown"
-    
-    return {
-        "resourceType": "Patient",
-        "id": f"{sample_id}-patient",
-        "meta": {"profile": ["https://fhir.kemkes.go.id/r4/StructureDefinition/Patient"]},
-        "active": True,
-        "name": [{"use": "official", "family": family_name, "given": [given_name]}],
-        "gender": gender,
-        "birthDate": birth_date,
-        "identifier": [
-            {"use": "official", "system": "https://fhir.kemkes.go.id/id/nik", "value": nik},
-            {"use": "usual", "type": {"coding": [{"system": "http://terminology.hl7.org/CodeSystem/v2-0203", "code": "MR", "display": "Medical record number"}]}, "system": "http://sys-ids.kemkes.go.id/mr/100007730", "value": sample_id}
-        ],
-        "extension": [
-            {
-                "url": "https://fhir.kemkes.go.id/r4/StructureDefinition/administrativeCode",
-                "extension": [
-                    {"url": "province", "valueCode": "**"},
-                    {"url": "city", "valueCode": "**"},
-                    {"url": "district", "valueCode": "**"},
-                    {"url": "village", "valueCode": "**"}
-                ]
-            },
-            {"url": "https://fhir.kemkes.go.id/r4/StructureDefinition/citizenshipStatus", "valueCode": "WNI"}
-        ],
-        "address": [{
-            "use": "home", "type": "physical", "text": get_clinical_value(clinical_data, 'address'),
-            "city": get_clinical_value(clinical_data, 'city'), "state": get_clinical_value(clinical_data, 'state'), "country": "ID",
-            "extension": [
-                {"url": "https://fhir.kemkes.go.id/r4/StructureDefinition/administrativeCode", "extension": [
-                    {"url": "province", "valueCode": "**"},
-                    {"url": "city", "valueCode": "**"},
-                    {"url": "district", "valueCode": "**"},
-                    {"url": "village", "valueCode": "**"}
-                ]},
-                {"url": "http://hl7.org/fhir/StructureDefinition/geolocation", "extension": [
-                    {"url": "latitude", "valueDecimal": -1.1111},
-                    {"url": "longitude", "valueDecimal": 111.1111}
-                ]}
-            ]
-        }]
-    }
-
-def create_service_request_resource(sample_id, clinical_data):
-    given_name = get_clinical_value(clinical_data, 'given_name', 'Unknown')
-    family_name = get_clinical_value(clinical_data, 'family_name', 'Unknown')
-    patient_display = f"{given_name} {family_name}"
-
-    return {
-        "resourceType": "ServiceRequest",
-        "id": f"{sample_id}-service-request",
-        "meta": {"profile": ["https://fhir.kemkes.go.id/r4/StructureDefinition/ServiceRequest"]},
-        "identifier": [{"system": "http://sys-ids.kemkes.go.id/servicerequest/100007730", "value": f"SR-{sample_id}"}],
-        "status": "active",
-        "intent": "original-order",
-        "priority": "routine",
-        "category": [{"coding": [{"system": "http://snomed.info/sct", "code": "108252007", "display": "Laboratory procedure"}]}],
-        "code": {"coding": [{"system": "http://loinc.org", "code": "69548-6", "display": "Genetic variant assessment"}], "text": "TB Genetic Variant Assessment"},
-        "subject": {"reference": f"Patient/{sample_id}-patient", "display": patient_display},
-        "occurrenceDateTime": datetime.now(timezone.utc).isoformat(),
-        "requester": {"reference": "Practitioner/1234", "display": "Budi"},
-        "performer": [{"reference": "PractitionerRole/SPHERES-Nurse-Role", "display": "Registered nurse"}]
-    }
 
 def classify_drug_resistance(observations):
     resistant_drugs_groups = set()
@@ -288,8 +154,8 @@ def get_resistance_conclusion_coding(resistance_class):
     }
     return coding_map.get(resistance_class)
 
-def create_diagnostic_report(sample_id, observations, clinical_data):
-    patient_name = get_clinical_value(clinical_data, 'given_name') + " " + get_clinical_value(clinical_data, 'family_name')
+def create_diagnostic_report(sample_id, observations):
+    patient_name = sample_id
     
     resistance_class, resistance_description, resistant_genes, resistant_drugs = classify_drug_resistance(observations)
     
@@ -345,7 +211,7 @@ def create_diagnostic_report(sample_id, observations, clinical_data):
             for comp in obs.get('component', []):
                 c_code = comp.get('code', {}).get('coding', [{}])[0].get('code')
                 if c_code == '48018-6': gene = comp.get('valueCodeableConcept', {}).get('text', '')
-                if c_code == '81290-9': change = comp.get('valueCodeableConcept', {}).get('text', '')
+                if c_code == '79162-1': change = comp.get('valueCodeableConcept', {}).get('text', '')
             
             if gene or change:
                 html_content += f"<li>{gene}: {change}</li>"
@@ -385,10 +251,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True, help='Input FHIR bundle (Observations)')
     parser.add_argument('--output', required=True, help='Output merged FHIR bundle')
-    parser.add_argument('--clinical_metadata', required=True, help='Clinical metadata CSV')
     args = parser.parse_args()
 
-    clinical_data_map = load_clinical_metadata(args.clinical_metadata)
     with open(args.input, 'r') as f:
         input_bundle = json.load(f)
     
@@ -404,25 +268,9 @@ def main():
         else:
             sample_id = os.path.basename(args.input).split('.')[0]
 
-    sample_clinical = find_matching_sample(sample_id, clinical_data_map)
-    if not sample_clinical:
-        print(f"Warning: No clinical data found for {sample_id}")
-        sample_clinical = {'given_name': 'Unknown', 'family_name': '', 'sample_id': sample_id}
-
-    org = create_organization_resource()
-    practitioner = create_practitioner_resource()
-    role = create_practitioner_role_resource()
-    patient = create_patient_resource(sample_id, sample_clinical)
-    service_request = create_service_request_resource(sample_id, sample_clinical)
-    report = create_diagnostic_report(sample_id, observations, sample_clinical)
+    report = create_diagnostic_report(sample_id, observations)
     
     entries = []
-    entries.append({"fullUrl": f"urn:uuid:{org['id']}", "resource": org, "request": {"method": "PUT", "url": f"Organization/{org['id']}"}})
-    entries.append({"fullUrl": f"urn:uuid:{practitioner['id']}", "resource": practitioner, "request": {"method": "PUT", "url": f"Practitioner/{practitioner['id']}"}})
-    entries.append({"fullUrl": f"urn:uuid:{role['id']}", "resource": role, "request": {"method": "PUT", "url": f"PractitionerRole/{role['id']}"}})
-    
-    entries.append({"fullUrl": f"urn:uuid:{patient['id']}", "resource": patient, "request": {"method": "PUT", "url": f"Patient/{patient['id']}"}})
-    entries.append({"fullUrl": f"urn:uuid:{service_request['id']}", "resource": service_request, "request": {"method": "PUT", "url": f"ServiceRequest/{service_request['id']}"}})
     entries.append({"fullUrl": f"urn:uuid:{report['id']}", "resource": report, "request": {"method": "PUT", "url": f"DiagnosticReport/{report['id']}"}})
     
     for obs in observations:
