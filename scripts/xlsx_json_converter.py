@@ -158,9 +158,9 @@ def create_observation(sample_id, variant_data, obs_index):
     if codon_change:
         display_val = codon_change
         components.append({
-            "code": {"coding": [{"system": "http://loinc.org", "code": "81290-9", "display": "Genomic DNA change (gHGVS)"}]},
+            "code": {"coding": [{"system": "http://loinc.org", "code": "79162-1", "display": "Deeplex Myc-TB codon change"}]},
             "valueCodeableConcept": {
-                "coding": [{"system": "https://varnomen.hgvs.org", "code": display_val, "display": display_val}],
+                "coding": [{"system": "https://www.deeplex.com/", "code": display_val, "display": display_val}],
                 "text": display_val
             }
         })
