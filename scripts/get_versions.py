@@ -46,11 +46,7 @@ def main():
     print("system_tools:")
     
     tools = {
-        "bcftools": ("bcftools", "--version"),
-        "samtools": ("samtools", "--version"),
-        "java": ("java", "-version"),
-        "tabix": ("tabix", "--version"),
-        "bgzip": ("bgzip", "--version")
+        "java": ("java", "-version")
     }
 
     for name, (cmd, flag) in tools.items():
