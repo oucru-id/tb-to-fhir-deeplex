@@ -25,7 +25,6 @@ process MERGE_CLINICAL_DEEPLEX {
 
     input:
     path(fhir_bundle)
-    path(clinical_metadata)
 
     output:
     path "*.merged.fhir.json", emit: merged_fhir
@@ -35,22 +34,19 @@ process MERGE_CLINICAL_DEEPLEX {
     """
     python3 $baseDir/scripts/merge_clinical_deeplex.py \\
         --input "${fhir_bundle}" \\
-        --output "${prefix}.merged.fhir.json" \\
-        --clinical_metadata "${clinical_metadata}"
+        --output "${prefix}.merged.fhir.json"
     """
 }
 
 workflow DEEPLEX {
     take:
     deeplex_ch
-    clinical_metadata_ch
 
     main:
     fhir_raw = CONVERT_DEEPLEX(deeplex_ch)
     fhir_flattened = fhir_raw.fhir_files.flatten()
     merged_fhir = MERGE_CLINICAL_DEEPLEX(
-        fhir_flattened,
-        clinical_metadata_ch
+        fhir_flattened
     )
 
     emit:
