@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 
 log.info """
     Mycobacterium tuberculosis Mutation Analysis Mini Pipeline (v${params.version})
-    VCF and Deeplex Excel Conversion to FHIR
+    VCF and Deeplex Excel Conversion to FHIR Genomics
     Developed by SPHERES-OUCRU ID
     Documentation: https://docs.google.com/document/d/1loZhheM22cWnU3taqAaef16lePK7BoNJ5lTjEuXwFYE/edit?usp=sharing
 """
@@ -14,7 +14,6 @@ include { LINEAGE }               from './workflows/lineage.nf'
 include { GENERATE_SAMPLE_REPORTS } from './workflows/report.nf'
 include { FHIR }                  from './workflows/fhir.nf'
 include { VALIDATE }              from './workflows/validate_fhir.nf'
-include { MERGE_CLINICAL_DATA }   from './workflows/merge_clinical_data.nf'
 include { UPLOAD_FHIR }           from './workflows/upload_fhir.nf'
 include { VERSIONS }              from './workflows/utils.nf'
 include { DEEPLEX }               from './workflows/deeplex.nf'
@@ -53,12 +52,12 @@ workflow {
 
     deeplex_out = DEEPLEX(deeplex_ch, deeplex_clinical_ch)
 
-    merged_clinical_out = MERGE_CLINICAL_DATA(
-        fhir_out.fhir_output, 
-        clinical_metadata_ch
-    )
+    // merged_clinical_out = MERGE_CLINICAL_DATA(
+    //    fhir_out.fhir_output, 
+    //    clinical_metadata_ch
+    //)
     
-    validation_out = VALIDATE(merged_clinical_out.merged_fhir)
+    // validation_out = VALIDATE(merged_clinical_out.merged_fhir)
     
     // Optional: Upload validated FHIR
     //upload_out = UPLOAD_FHIR(validation_out.validated_fhir)
