@@ -47,10 +47,10 @@ process UPLOAD_TO_FHIR {
 
 workflow UPLOAD_FHIR {
     take:
-    validated_fhir_files
+    fhir_files
     
     main:
-    UPLOAD_TO_FHIR(validated_fhir_files)
+    UPLOAD_TO_FHIR(fhir_files)
     
     emit:
     results = UPLOAD_TO_FHIR.out.upload_result
