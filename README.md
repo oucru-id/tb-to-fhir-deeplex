@@ -14,8 +14,6 @@ This pipeline processes TB genomic data from:
 - **Nextflow** ≥ 20.10.0
 - **Java** 11+
 - **Python** 3.8+
-- `tabix` ≥ 1.11
-- `bgzip` ≥ 1.11
 
 ## Installation
 
@@ -92,6 +90,12 @@ results/
     ├── timeline.html
     └── dag.html
 ```
+## [v1.4.0] - 2026-04-23
+
+### Changed
+- Removed VCF processing, lineage analysis, and sample report generation.
+- Fixed UPLOAD_FHIR process to FHIR transaction bundles.
+- Removed VCF-related parameters (vcf_dir, reference, repetitive_regions, lineage_barcode, clinical_metadata).
 
 ## Support
 [GitHub Issues](https://github.com/oucru-id/tb-to-fhir-deeplex/issues)
