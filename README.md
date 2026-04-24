@@ -69,9 +69,7 @@ results/
     ├── timeline.html
     └── dag.html
 ```
-## [v1.4.0] - 2026-04-23
-
-### Changed
+### [v1.4.0]
 - Removed VCF processing, lineage analysis, and sample report generation.
 - Fixed UPLOAD_FHIR process to FHIR transaction bundles.
 - Removed VCF-related parameters (vcf_dir, reference, repetitive_regions, lineage_barcode, clinical_metadata).
