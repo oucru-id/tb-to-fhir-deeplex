@@ -43,12 +43,6 @@ Place Excel files in `data/Deeplex/` directory
 nextflow run main.nf
 ```
 
-### Resume Failed Runs
-
-```bash
-nextflow run main.nf -resume
-```
-
 ## Workflow Steps
 
 ### Deeplex Processing
@@ -69,7 +63,7 @@ results/
     ├── timeline.html
     └── dag.html
 ```
-### [v1.4.0]
+### v1.4.0
 - Removed VCF processing, lineage analysis, and sample report generation.
 - Fixed UPLOAD_FHIR process to FHIR transaction bundles.
 - Removed VCF-related parameters (vcf_dir, reference, repetitive_regions, lineage_barcode, clinical_metadata).
