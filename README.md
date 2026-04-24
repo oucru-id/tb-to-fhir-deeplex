@@ -1,19 +1,4 @@
-# TB to FHIR Genomics Deeplex Excel Pipeline
-
-A Nextflow pipeline for converting Mycobacterium tuberculosis Deeplex Myc-TB Excel genomic data to FHIR Genomics format.
-
-## Overview
-
-This pipeline processes TB genomic data from:
-- **Deeplex Excel files**: Post-analysis TB mutation data from the Deeplex platform
-
-## Requirements
-
-### System Dependencies
-
-- **Nextflow** ≥ 20.10.0
-- **Java** 11+
-- **Python** 3.8+
+A Nextflow pipeline for converting Mycobacterium tuberculosis Deeplex Myc-TB Excel genomic data to FHIR Genomics format. [Full documentation](https://deeplex-tb-to-fhir.readthedocs.io/)
 
 ## Installation
 
@@ -48,13 +33,7 @@ tb-to-fhir-deeplex
 
 ### Deeplex Files
 
-Place Excel files in `data/Deeplex/` directory:
-
-```bash
-data/Deeplex/
-├── deeplex_batch_001.xlsx
-└── deeplex_batch_002.xlsx
-```
+Place Excel files in `data/Deeplex/` directory
 
 ## Usage
 
@@ -96,7 +75,7 @@ results/
 - Removed VCF processing, lineage analysis, and sample report generation.
 - Fixed UPLOAD_FHIR process to FHIR transaction bundles.
 - Removed VCF-related parameters (vcf_dir, reference, repetitive_regions, lineage_barcode, clinical_metadata).
-- Add custom LOINC code for specific Deeplex codon change (replacing gHGVS)
+- Add custom LOINC code for specific Deeplex codon change (replacing gHGVS).
 
 ## Support
 [GitHub Issues](https://github.com/oucru-id/tb-to-fhir-deeplex/issues)
