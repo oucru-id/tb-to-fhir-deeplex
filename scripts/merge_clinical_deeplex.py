@@ -211,7 +211,7 @@ def create_diagnostic_report(sample_id, observations):
             for comp in obs.get('component', []):
                 c_code = comp.get('code', {}).get('coding', [{}])[0].get('code')
                 if c_code == '48018-6': gene = comp.get('valueCodeableConcept', {}).get('text', '')
-                if c_code == '79162-1': change = comp.get('valueCodeableConcept', {}).get('text', '')
+                if c_code == 'SP000800': change = comp.get('valueCodeableConcept', {}).get('text', '')
             
             if gene or change:
                 html_content += f"<li>{gene}: {change}</li>"
