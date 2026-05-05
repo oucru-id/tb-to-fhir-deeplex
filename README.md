@@ -63,11 +63,6 @@ results/
     ├── timeline.html
     └── dag.html
 ```
-### v1.4.0
-- Removed VCF processing, lineage analysis, and sample report generation.
-- Fixed UPLOAD_FHIR process to FHIR transaction bundles.
-- Removed VCF-related parameters (vcf_dir, reference, repetitive_regions, lineage_barcode, clinical_metadata).
-- Add custom LOINC code for specific Deeplex codon change (replacing gHGVS).
 
 ## Support
 [GitHub Issues](https://github.com/oucru-id/tb-to-fhir-deeplex/issues)
