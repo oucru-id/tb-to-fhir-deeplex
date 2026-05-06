@@ -6,6 +6,8 @@ import sys
 import os
 import base64
 import uuid
+import re
+import csv
 from datetime import datetime, timezone
 
 
@@ -154,7 +156,7 @@ def get_resistance_conclusion_coding(resistance_class):
     }
     return coding_map.get(resistance_class)
 
-def create_diagnostic_report(sample_id, observations):
+def create_diagnostic_report(sample_id, observations, patient_ref=None):
     patient_name = sample_id
     
     resistance_class, resistance_description, resistant_genes, resistant_drugs = classify_drug_resistance(observations)
@@ -230,12 +232,8 @@ def create_diagnostic_report(sample_id, observations):
         },
         "status": "final",
         "code": {"coding": [{"system": "http://loinc.org", "code": "81247-9", "display": "Master HL7 genetic variant reporting panel"}], "text": "TB Genomic Analysis Report"},
-        "subject": {"reference": f"Patient/{sample_id}-patient", "display": patient_name},
+        "subject": {"reference": patient_ref if patient_ref else f"Patient/{sample_id}-patient", "display": patient_name},
         "issued": current_time,
-        "performer": [
-            {"reference": "Organization/1234", "display": "PUSKESMAS 1"},
-            {"reference": "Practitioner/1234", "display": "Budi"}
-        ],
         "result": [{"reference": f"Observation/{obs['id']}"} for obs in observations],
         "conclusion": conclusion,
         "conclusionCode": conclusion_codes,
@@ -247,10 +245,27 @@ def create_diagnostic_report(sample_id, observations):
         }]
     }
 
+def _load_patient_mapping(csv_path):
+    mapping = {}
+    if not csv_path or not os.path.isfile(csv_path):
+        return mapping
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            raw = str(row.get('sample_id', '')).strip()
+            uuid_val = str(row.get('patient_uuid', '')).strip()
+            if raw and uuid_val:
+                mapping[raw.lower()] = f"Patient/{uuid_val}"
+                norm = re.sub(r'[^a-z0-9]', '', raw.lower())
+                mapping[norm] = f"Patient/{uuid_val}"
+    return mapping
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True, help='Input FHIR bundle (Observations)')
     parser.add_argument('--output', required=True, help='Output merged FHIR bundle')
+    parser.add_argument('--mapping', default='', help='Path to sampletopatientid_mapping.csv')
     args = parser.parse_args()
 
     with open(args.input, 'r') as f:
@@ -258,17 +273,15 @@ def main():
     
     observations = [entry['resource'] for entry in input_bundle.get('entry', []) if entry['resource']['resourceType'] == 'Observation']
     
+    sample_id = os.path.basename(args.input).split('.')[0]
     if not observations:
         print("No observations found.")
-        sample_id = os.path.basename(args.input).split('.')[0]
-    else:
-        ref = observations[0].get('subject', {}).get('reference', '')
-        if ref:
-            sample_id = ref.replace('Patient/', '').replace('-patient', '')
-        else:
-            sample_id = os.path.basename(args.input).split('.')[0]
 
-    report = create_diagnostic_report(sample_id, observations)
+    patient_map = _load_patient_mapping(args.mapping) if args.mapping else {}
+    norm_key = re.sub(r'[^a-z0-9]', '', sample_id.lower())
+    patient_ref = patient_map.get(sample_id.lower()) or patient_map.get(norm_key)
+
+    report = create_diagnostic_report(sample_id, observations, patient_ref)
     
     entries = []
     entries.append({"fullUrl": f"urn:uuid:{report['id']}", "resource": report, "request": {"method": "PUT", "url": f"DiagnosticReport/{report['id']}"}})
