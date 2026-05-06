@@ -3,10 +3,10 @@
 nextflow.enable.dsl = 2
 
 log.info """
-    Mycobacterium tuberculosis Mutation Analysis Mini Pipeline (v${params.version})
-    Deeplex Excel Conversion to FHIR Genomics
+    Mycobacterium tuberculosis Mutation Deeplex Myc-TB Pipeline (v${params.version})
+    Deeplex Excel to FHIR Genomics
     Developed by SPHERES-OUCRU ID
-    Documentation: https://docs.google.com/document/d/1loZhheM22cWnU3taqAaef16lePK7BoNJ5lTjEuXwFYE/edit?usp=sharing
+    Documentation: https://deeplex-tb-to-fhir.readthedocs.io/
 """
 
 include { UPLOAD_FHIR }           from './workflows/upload_fhir.nf'
