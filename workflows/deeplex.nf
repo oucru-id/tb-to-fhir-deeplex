@@ -16,7 +16,8 @@ process CONVERT_DEEPLEX {
     mkdir -p fhir_output
     python3 $baseDir/scripts/xlsx_json_converter.py \\
         --input "${deeplex_file}" \\
-        --output_dir fhir_output
+        --output_dir fhir_output \\
+        --mapping "${params.mapping_file}"
     """
 }
 
@@ -34,7 +35,8 @@ process MERGE_CLINICAL_DEEPLEX {
     """
     python3 $baseDir/scripts/merge_clinical_deeplex.py \\
         --input "${fhir_bundle}" \\
-        --output "${prefix}.merged.fhir.json"
+        --output "${prefix}.merged.fhir.json" \\
+        --mapping "${params.mapping_file}"
     """
 }
 
