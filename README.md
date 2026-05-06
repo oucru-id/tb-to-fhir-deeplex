@@ -7,10 +7,6 @@ From the repo
 git clone https://github.com/oucru-id/tb-to-fhir-deeplex.git
 cd tb-to-fhir-deeplex
 ```
-Docker installation
-```bash
-docker pull ghcr.io/javiadividya/tb-to-fhir-mini:1.0
-```
 
 ## Directory Structure
 
@@ -37,10 +33,24 @@ Place Excel files in `data/Deeplex/` directory
 
 ## Usage
 
+### Get Access Token to FHIR Server
+
+```bash
+python3 scripts/get_access_token.py --auth_base_url "" --client_id "" --client_secret ""
+```
+
 ### Basic Run
 
 ```bash
 nextflow run main.nf
+```
+
+### Run and Upload to FHIR Server
+
+```bash
+nextflow run main.nf \
+  --fhir_server_url "https://<BASE_URL>/fhir" \
+  --fhir_server_auth  ""
 ```
 
 ## Workflow Steps
@@ -58,6 +68,8 @@ results/
 │   └── deeplex_batch_001.json
 ├── fhir_deeplex_merged/               # Deeplex FHIR + DiagnosticReport
 │   └── deeplex_batch_001.merged.fhir.json
+├── fhir_upload/                       # Uploaded FHIR responses
+│   └── deeplex_batch_001.merged.fhir.upload.json
 └── runningstat/                       # Nextflow execution reports
     ├── execution.html
     ├── timeline.html
