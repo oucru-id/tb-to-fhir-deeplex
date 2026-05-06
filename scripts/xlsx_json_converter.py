@@ -6,6 +6,7 @@ import uuid
 import os
 import sys
 import re
+import csv
 from collections import defaultdict
 from datetime import datetime, timezone
 
@@ -130,7 +131,7 @@ def get_deeplex_classification_coding(confidence_text):
     
     return None
 
-def create_observation(sample_id, variant_data, obs_index):
+def create_observation(sample_id, variant_data, obs_index, patient_ref=None):
     gene = variant_data.get('gene')
     codon_change = clean_variant_text(variant_data.get('codon_change'))
     amino_acid = clean_variant_text(variant_data.get('amino_acid'))
@@ -213,15 +214,13 @@ def create_observation(sample_id, variant_data, obs_index):
             }
         ],
         "code": {"coding": [{"system": "http://loinc.org", "code": "69548-6", "display": "Genetic variant assessment"}]},
-        "subject": {"reference": f"Patient/{sample_id}-patient"},
-        "specimen": {"reference": f"Specimen/{sample_id}-specimen"},
+        "subject": {"reference": patient_ref if patient_ref else f"Patient/{sample_id}-patient"},
         "effectiveDateTime": effective_datetime,
-        "performer": [{"reference": "Organization/100007732"}],
         "valueCodeableConcept": {"coding": [{"system": "http://loinc.org", "code": "LA9633-4", "display": "Present"}], "text": "Present"},
         "component": components
     }
 
-def create_lineage_observation(sample_id, lineage_text, obs_index):
+def create_lineage_observation(sample_id, lineage_text, obs_index, patient_ref=None):
     obs_id = f"{sample_id}-lineage" 
     effective_datetime = datetime.now(timezone.utc).isoformat()
     
@@ -242,10 +241,8 @@ def create_lineage_observation(sample_id, lineage_text, obs_index):
             }
         ],
         "code": {"coding": [{"system": "http://loinc.org", "code": "614-8", "display": "Mycobacterial strain [Type] in Isolate by Mycobacterial subtyping"}]},
-        "subject": {"reference": f"Patient/{sample_id}-patient"},
-        "specimen": {"reference": f"Specimen/{sample_id}-specimen"},
+        "subject": {"reference": patient_ref if patient_ref else f"Patient/{sample_id}-patient"},
         "effectiveDateTime": effective_datetime,
-        "performer": [{"reference": "Organization/100007732"}],
         "valueCodeableConcept": {
             "coding": [
                 {
@@ -258,7 +255,7 @@ def create_lineage_observation(sample_id, lineage_text, obs_index):
         }
     }
 
-def create_drug_panel_observation(sample_id, resistant_drugs_detected):
+def create_drug_panel_observation(sample_id, resistant_drugs_detected, patient_ref=None):
     panel_components = []
     panel_config = get_drug_panel_config()
     
@@ -311,14 +308,42 @@ def create_drug_panel_observation(sample_id, resistant_drugs_detected):
                 "display": "Mycobacterial susceptibility panel Qualitative by Genotype method"
             }]
         },
-        "subject": {"reference": f"Patient/{sample_id}-patient"},
-        "specimen": {"reference": f"Specimen/{sample_id}-specimen"},
+        "subject": {"reference": patient_ref if patient_ref else f"Patient/{sample_id}-patient"},
         "effectiveDateTime": datetime.now(timezone.utc).isoformat(),
-        "performer": [{"reference": "Organization/100007732"}],
         "component": panel_components
     }
 
-def process_deeplex_batch(input_path, output_dir):
+
+def load_patient_mapping(csv_path):
+    """Load sample_id -> Patient reference from CSV (columns: sample_id, patient_uuid).
+    Fill in the CSV manually before running the pipeline.
+    """
+    mapping = {}
+    if not csv_path or not os.path.isfile(csv_path):
+        return mapping
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            raw = str(row.get('sample_id', '')).strip()
+            uuid_val = str(row.get('patient_uuid', '')).strip()
+            if raw and uuid_val:
+                mapping[raw.lower()] = f"Patient/{uuid_val}"
+                norm = re.sub(r'[^a-z0-9]', '', raw.lower())
+                mapping[norm] = f"Patient/{uuid_val}"
+    return mapping
+
+
+def _lookup_patient_ref(safe_id, patient_map):
+    if not patient_map:
+        return None
+    ref = patient_map.get(safe_id.lower())
+    if ref:
+        return ref
+    norm = re.sub(r'[^a-z0-9]', '', safe_id.lower())
+    return patient_map.get(norm)
+
+
+def process_deeplex_batch(input_path, output_dir, patient_map=None):
     all_sample_data = defaultdict(lambda: {"display_id": None, "variants": [], "lineages": set(), "resistant_drugs": set()})
     
     sheets_to_process = [
@@ -454,18 +479,19 @@ def process_deeplex_batch(input_path, output_dir):
         for core_id, data in all_sample_data.items():
             final_display_id = data["display_id"]
             safe_id = re.sub(r'[^a-z0-9_-]', '', final_display_id.lower())
+            patient_ref = _lookup_patient_ref(safe_id, patient_map)
             
             observations = []
             obs_counter = 1
             
             for var_data in data["variants"]:
-                observations.append(create_observation(safe_id, var_data, obs_counter))
+                observations.append(create_observation(safe_id, var_data, obs_counter, patient_ref))
                 obs_counter += 1
             
-            observations.append(create_drug_panel_observation(safe_id, data["resistant_drugs"]))
+            observations.append(create_drug_panel_observation(safe_id, data["resistant_drugs"], patient_ref))
             
             for lin_text in data["lineages"]:
-                observations.append(create_lineage_observation(safe_id, lin_text, obs_counter))
+                observations.append(create_lineage_observation(safe_id, lin_text, obs_counter, patient_ref))
                 obs_counter += 1
             
             bundle = {
@@ -493,12 +519,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True, help='Deeplex XLSX file')
     parser.add_argument('--output_dir', required=True, help='Output directory for JSON files')
+    parser.add_argument('--mapping', default='', help='Path to sampletopatientid_mapping.csv')
     args = parser.parse_args()
 
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
 
-    process_deeplex_batch(args.input, args.output_dir)
+    patient_map = load_patient_mapping(args.mapping) if args.mapping else {}
+    process_deeplex_batch(args.input, args.output_dir, patient_map)
 
 if __name__ == "__main__":
     main()
