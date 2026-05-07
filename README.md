@@ -21,8 +21,12 @@ tb-to-fhir-deeplex
 │   ├── xlsx_json_converter.py       # Deeplex to FHIR converter
 │   ├── merge_clinical_deeplex.py    # DiagnosticReport data merge
 │   └── get_versions.py              # Version collection
+│   └── upload_fhir.py               # FHIR uploader
+│   └── get_access_token.py          # Standalone script to get the access token to FHIR server
 └── data/
-    ├── Deeplex/
+│   ├── Deeplex/
+│   └── access_token.json              # Access token generated
+│   └── sampletopatientid_mapping.csv  # Mapping patient UUID with Deeplex's sample ID 
 ```
 
 ## Input Data
@@ -46,11 +50,10 @@ nextflow run main.nf
 ```
 
 ### Run and Upload to FHIR Server
-
+Notes: Get the access token first before running the pipeline
 ```bash
 nextflow run main.nf \
-  --fhir_server_url "https://<BASE_URL>/fhir" \
-  --fhir_server_auth  ""
+  --fhir_server_url "https://<BASE_URL>/fhir"
 ```
 
 ## Workflow Steps
