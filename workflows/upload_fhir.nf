@@ -13,19 +13,13 @@ process UPLOAD_TO_FHIR {
     path "${fhir_file.baseName}.upload.json", emit: upload_result
 
     script:
-    def static_token_arg  = params.fhir_server_auth ? "--static_token '${params.fhir_server_auth}'" : ""
-    def auth_url_arg      = params.auth_base_url    ? "--auth_base_url '${params.auth_base_url}'"   : ""
-    def client_id_arg     = params.client_id        ? "--client_id '${params.client_id}'"           : ""
-    def client_secret_arg = params.client_secret    ? "--client_secret '${params.client_secret}'"   : ""
-    def api_key_arg       = params.api_key          ? "--api_key '${params.api_key}'"               : ""
+    def token_file_arg    = "--token_file '${projectDir}/data/access_token.json'"
+    def api_key_arg       = params.api_key ? "--api_key '${params.api_key}'" : ""
     """
     python3 ${projectDir}/scripts/upload_fhir.py \\
         --fhir_file ${fhir_file} \\
         --fhir_server_url '${params.fhir_server_url}' \\
-        ${static_token_arg} \\
-        ${auth_url_arg} \\
-        ${client_id_arg} \\
-        ${client_secret_arg} \\
+        ${token_file_arg} \\
         ${api_key_arg}
     """
 }
