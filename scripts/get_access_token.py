@@ -3,9 +3,13 @@ import argparse
 import json
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+BASEDIR = Path(__file__).parent.parent
+DEFAULT_OUT = str(BASEDIR / "data" / "access_token.json")
 
 
 def fetch_access_token(auth_base_url, client_id, client_secret, scope, timeout):
@@ -75,10 +79,10 @@ def main():
     parser.add_argument(
         "--format",
         choices=["token", "bearer", "json"],
-        default="token",
-        help="Output format: token, bearer, or json (default: token)",
+        default=None,
+        help="Optional CLI output format: token, bearer, or json (default: no CLI output)",
     )
-    parser.add_argument("--out", default="", help="Optional path to write full JSON output")
+    parser.add_argument("--out", default=DEFAULT_OUT, help=f"Path to write full JSON output (default: {DEFAULT_OUT})")
     args = parser.parse_args()
 
     try:
@@ -94,15 +98,18 @@ def main():
         sys.exit(1)
 
     if args.out:
-        with open(args.out, "w") as output_handle:
+        out_path = Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w") as output_handle:
             json.dump(token_result, output_handle, indent=2)
 
-    if args.format == "token":
-        print(token_result["access_token"])
-    elif args.format == "bearer":
-        print(f"Bearer {token_result['access_token']}")
-    else:
-        print(json.dumps(token_result, indent=2))
+    if args.format:
+        if args.format == "token":
+            print(token_result["access_token"])
+        elif args.format == "bearer":
+            print(f"Bearer {token_result['access_token']}")
+        elif args.format == "json":
+            print(json.dumps(token_result, indent=2))
 
 
 if __name__ == "__main__":
