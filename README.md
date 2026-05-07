@@ -26,6 +26,7 @@ tb-to-fhir-deeplex
 └── data/
 │   ├── Deeplex/
 │   └── access_token.json              # Access token generated
+│   └── input_sso.json                 # SSO info to generate token
 │   └── sampletopatientid_mapping.csv  # Mapping patient UUID with Deeplex's sample ID 
 ```
 
@@ -40,7 +41,7 @@ Place Excel files in `data/Deeplex/` directory
 ### Get Access Token to FHIR Server
 
 ```bash
-python3 scripts/get_access_token.py --auth_base_url "" --client_id "" --client_secret ""
+python3 scripts/get_access_token.py
 ```
 
 ### Basic Run
