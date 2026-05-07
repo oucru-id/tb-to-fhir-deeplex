@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
 
@@ -57,17 +58,36 @@ def main():
     parser.add_argument("--client_id", default="", help="OAuth client_id")
     parser.add_argument("--client_secret", default="", help="OAuth client_secret")
     parser.add_argument("--static_token", default="", help="Pre-existing static Bearer token (skips OAuth flow)")
+    parser.add_argument("--token_file", default="", help="Path to access_token.json written by get_access_token.py")
     parser.add_argument("--api_key", default="", help="API key sent as X-Api-Key header")
     args = parser.parse_args()
 
-    if args.static_token:
+    if args.token_file:
+        token_path = Path(args.token_file)
+        if not token_path.exists():
+            print(f"ERROR: Token file not found: {token_path}", file=sys.stderr)
+            sys.exit(1)
+        with open(token_path, "r") as tf:
+            token_data = json.load(tf)
+        access_token = token_data.get("access_token")
+        if not access_token:
+            print(f"ERROR: No access_token field in {token_path}", file=sys.stderr)
+            sys.exit(1)
+        expires_at = token_data.get("expires_at")
+        if expires_at:
+            expiry = datetime.fromisoformat(expires_at)
+            if datetime.now(expiry.tzinfo) >= expiry:
+                print(f"ERROR: Token in {token_path} has expired at {expires_at}. Re-run get_access_token.py.", file=sys.stderr)
+                sys.exit(1)
+        print(f"Using token from {token_path}")
+    elif args.static_token:
         access_token = args.static_token
     elif args.auth_base_url and args.client_id and args.client_secret:
         print(f"Fetching OAuth token from {args.auth_base_url}...")
         access_token = fetch_access_token(args.auth_base_url, args.client_id, args.client_secret)
         print("Token acquired.")
     else:
-        print("ERROR: Provide either --static_token or all of --auth_base_url, --client_id, --client_secret", file=sys.stderr)
+        print("ERROR: Provide --token_file, --static_token, or all of --auth_base_url, --client_id, --client_secret", file=sys.stderr)
         sys.exit(1)
 
     print(f"Uploading {args.fhir_file} to {args.fhir_server_url}...")
