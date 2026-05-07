@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 
 BASEDIR = Path(__file__).parent.parent
 DEFAULT_OUT = str(BASEDIR / "data" / "access_token.json")
+DEFAULT_SSO = str(BASEDIR / "data" / "input_sso.json")
 
 
 def fetch_access_token(auth_base_url, client_id, client_secret, scope, timeout):
@@ -71,9 +72,7 @@ def fetch_access_token(auth_base_url, client_id, client_secret, scope, timeout):
 
 def main():
     parser = argparse.ArgumentParser(description="Get OAuth2 access token using client credentials")
-    parser.add_argument("--auth_base_url", required=True, help="Auth base URL")
-    parser.add_argument("--client_id", required=True, help="OAuth client ID")
-    parser.add_argument("--client_secret", required=True, help="OAuth client secret")
+    parser.add_argument("--sso", default=DEFAULT_SSO, help=f"Path to SSO input JSON (default: {DEFAULT_SSO})")
     parser.add_argument("--scope", default="openid", help="OAuth scope (default: openid)")
     parser.add_argument("--timeout", type=int, default=30, help="Request timeout in seconds (default: 30)")
     parser.add_argument(
@@ -85,11 +84,22 @@ def main():
     parser.add_argument("--out", default=DEFAULT_OUT, help=f"Path to write full JSON output (default: {DEFAULT_OUT})")
     args = parser.parse_args()
 
+    sso_path = Path(args.sso)
+    if not sso_path.exists():
+        print(f"ERROR: SSO input file not found: {sso_path}", file=sys.stderr)
+        sys.exit(1)
+    with open(sso_path, "r") as sso_handle:
+        sso = json.load(sso_handle)
+    for key in ("auth_base_url", "client_id", "client_secret"):
+        if not sso.get(key):
+            print(f"ERROR: Missing '{key}' in {sso_path}", file=sys.stderr)
+            sys.exit(1)
+
     try:
         token_result = fetch_access_token(
-            auth_base_url=args.auth_base_url,
-            client_id=args.client_id,
-            client_secret=args.client_secret,
+            auth_base_url=sso["auth_base_url"],
+            client_id=sso["client_id"],
+            client_secret=sso["client_secret"],
             scope=args.scope,
             timeout=args.timeout,
         )
