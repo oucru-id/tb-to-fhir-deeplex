@@ -16,6 +16,7 @@ tb-to-fhir-deeplex
 ├── nextflow.config                  # Configuration
 ├── workflows/
 │   ├── deeplex.nf                   # Deeplex processing
+│   ├── upload_fhir.nf               # FHIR uploader
 │   └── utils.nf                     # Utility functions
 ├── scripts/
 │   ├── xlsx_json_converter.py       # Deeplex to FHIR converter
