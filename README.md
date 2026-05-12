@@ -1,4 +1,4 @@
-A Nextflow pipeline for converting Mycobacterium tuberculosis Deeplex Myc-TB Excel genomic data to FHIR Genomics format. [Full documentation](https://deeplex-tb-to-fhir.readthedocs.io/)
+A Nextflow pipeline for converting Mycobacterium tuberculosis Deeplex Myc-TB Excel genomic data to HL7 FHIR R4 Genomics format. [Full documentation](https://deeplex-tb-to-fhir.readthedocs.io/)
 
 ## Installation
 
@@ -52,18 +52,26 @@ nextflow run main.nf
 ```
 
 ### Run and Upload to FHIR Server
-Notes: Get the access token first before running the pipeline
+> Get the access token first before running the pipeline
 ```bash
 nextflow run main.nf \
   --fhir_server_url "https://<BASE_URL>/fhir"
 ```
 
-## Workflow Steps
+## Drug Resistance Classification
 
-### Deeplex Processing
+The `DiagnosticReport` conclusion is derived using the following order:
 
-1. **CONVERT_DEEPLEX**: Extract data from Excel files
-2. **MERGE_CLINICAL_DEEPLEX**: Add DiagnosticReport
+| Classification | Criteria |
+|---|---|
+| XDR-TB | MDR/RR + Fluoroquinolone resistance + Group A drug resistance |
+| Pre-XDR-TB | MDR/RR + Fluoroquinolone resistance |
+| MDR-TB | Resistance to both Isoniazid and Rifampicin |
+| RR-TB | Rifampicin resistance only |
+| HR-TB | Isoniazid resistance only |
+| Mono-resistant | Single drug resistance (Streptomycin, Ethionamide, Pyrazinamide, Ethambutol, or Ciprofloxacin) |
+| Drug-resistant | Any other resistance combination |
+| Sensitive | No resistance detected |
 
 ## Output Structure
 
