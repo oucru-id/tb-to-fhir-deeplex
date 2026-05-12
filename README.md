@@ -24,6 +24,7 @@ tb-to-fhir-deeplex
 │   └── get_versions.py              # Version collection
 │   └── upload_fhir.py               # FHIR uploader
 │   └── get_access_token.py          # Standalone script to get the access token to FHIR server
+│   └── get_patient_by_nik.py        # Standalone script to get patient UUID
 └── data/
 │   ├── Deeplex/
 │   └── access_token.json              # Access token generated
