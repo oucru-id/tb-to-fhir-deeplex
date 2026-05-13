@@ -41,7 +41,7 @@ Place Excel files in `data/Deeplex/` directory
 ## Usage
 
 ### Get Access Token to FHIR Server
-
+> Fill the input_sso.json first
 ```bash
 python3 scripts/get_access_token.py
 ```
