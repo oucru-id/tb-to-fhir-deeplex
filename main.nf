@@ -2,6 +2,12 @@
 
 nextflow.enable.dsl = 2
 
+include { UPLOAD_FHIR }           from './workflows/upload_fhir.nf'
+include { VERSIONS }              from './workflows/utils.nf'
+include { DEEPLEX }               from './workflows/deeplex.nf'
+
+workflow {
+    
 log.info """
     Mycobacterium tuberculosis Mutation Deeplex Myc-TB Pipeline (v${params.version})
     Deeplex Excel to FHIR Genomics
@@ -9,11 +15,6 @@ log.info """
     Documentation: https://deeplex-tb-to-fhir.readthedocs.io/
 """
 
-include { UPLOAD_FHIR }           from './workflows/upload_fhir.nf'
-include { VERSIONS }              from './workflows/utils.nf'
-include { DEEPLEX }               from './workflows/deeplex.nf'
-
-workflow {
     deeplex_ch = Channel
         .fromPath("${params.deeplex_dir}/*.xlsx", checkIfExists: false)
         .filter { file -> !file.name.startsWith('~$') }
