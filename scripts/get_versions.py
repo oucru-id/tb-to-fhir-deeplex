@@ -29,7 +29,7 @@ def get_tool_version(command, version_flag='--version'):
 
 def main():
     packages = [
-        "pandas", "numpy"
+        "pandas", "numpy", "requests", "openpyxl"
     ]
 
     print("python_tools:")
