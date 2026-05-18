@@ -1,4 +1,4 @@
-A Nextflow pipeline for converting Mycobacterium tuberculosis Deeplex Myc-TB Excel genomic data to HL7 FHIR R4 Genomics format. [Full documentation](https://deeplex-tb-to-fhir.readthedocs.io/)
+A Nextflow pipeline for converting Mycobacterium tuberculosis Deeplex Myc-TB Excel genomic data to HL7 FHIR R4 Genomics format (IG v3.0.0). [Full documentation](https://deeplex-tb-to-fhir.readthedocs.io/)
 
 ## Installation
 
