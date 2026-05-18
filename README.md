@@ -38,6 +38,15 @@ tb-to-fhir-deeplex
 
 Place Excel files in `data/Deeplex/` directory
 
+## Setup
+
+Create and activate a virtual environment before using the CLI scripts:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
 ## Usage
 
 ### Get Access Token to FHIR Server
