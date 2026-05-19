@@ -65,6 +65,12 @@ python3 scripts/get_access_token.py
 nextflow run main.nf
 ```
 
+### Search for Patient UUID
+> Get the access token first
+```bash
+python scripts/get_patient_by_nik.py --nik 1234567890 --fhir_base_url "https://<BASE_URL>/fhir"
+```
+
 ### Run and Upload to FHIR Server
 > Get the access token and fill the patient UUID mapping first before running the pipeline
 ```bash
@@ -90,6 +96,17 @@ docker run --rm \
   -v /your/host/results:/pipeline/results \
   robind1/tb-to-fhir-deeplex:v1.4.1 \
   run main.nf
+```
+
+### Search for Patient UUID
+> Get the access token first
+```bash
+docker run --rm \
+  -v /your/host/data:/pipeline/data \
+  robind1/tb-to-fhir-deeplex:v1.4.1 \
+  get-patient \
+  --nik 1234567890 \
+  --fhir_base_url "https://<BASE_URL>/fhir"
 ```
 
 ### Run and Upload to FHIR Server
