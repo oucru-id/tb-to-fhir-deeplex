@@ -7,6 +7,10 @@ From the repo
 git clone https://github.com/oucru-id/tb-to-fhir-deeplex.git
 cd tb-to-fhir-deeplex
 ```
+From the Docker
+```bash
+docker pull robind1/tb-to-fhir-deeplex:v1.4.1
+```
 
 ## Directory Structure
 
@@ -62,10 +66,40 @@ nextflow run main.nf
 ```
 
 ### Run and Upload to FHIR Server
-> Get the access token first before running the pipeline
+> Get the access token and fill the patient UUID mapping first before running the pipeline
 ```bash
 nextflow run main.nf \
   --fhir_server_url "https://<BASE_URL>/fhir"
+```
+## Usage (Docker)
+
+### Get Access Token to FHIR Server
+> Fill the input_sso.json first
+```bash
+docker run --rm \
+  -v /your/host/data:/pipeline/data \
+  robind1/tb-to-fhir-deeplex:v1.4.1 \
+  get-token --sso /pipeline/data/input_sso.json --out /pipeline/data/access_token.json
+```
+
+### Basic Run
+
+```bash
+docker run --rm \
+  -v /your/host/data:/pipeline/data \
+  -v /your/host/results:/pipeline/results \
+  robind1/tb-to-fhir-deeplex:v1.4.1 \
+  run main.nf
+```
+
+### Run and Upload to FHIR Server
+> Get the access token and fill the patient UUID mapping first before running the pipeline
+```bash
+docker run --rm \
+  -v /your/host/data:/pipeline/data \
+  -v /your/host/results:/pipeline/results \
+  robind1/tb-to-fhir-deeplex:v1.4.1 \
+  run main.nf --fhir_server_url "https://<BASE_URL>/fhir"
 ```
 
 ## Drug Resistance Classification
