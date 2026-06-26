@@ -65,24 +65,25 @@ def get_drug_panel_config():
         ('cycloserine', '103959-3', 'cycloSERINE [Susceptibility] by Genotype method')
     ]
 
-def normalize_drug_name(drug_name):
+def normalize_drug_names(drug_name):
     d = str(drug_name).strip().upper()
-    if 'RIF' in d: return 'rifampicin'
-    if 'INH' in d: return 'isoniazid'
-    if 'PZA' in d: return 'pyrazinamide'
-    if 'EMB' in d: return 'ethambutol'
-    if 'STR' in d: return 'streptomycin'
-    if 'LFX' in d: return 'levofloxacin'
-    if 'MFX' in d: return 'moxifloxacin'
-    if 'KAN' in d: return 'kanamycin'
-    if 'AMK' in d: return 'amikacin'
-    if 'CAP' in d: return 'capreomycin'
-    if 'ETH' in d: return 'ethionamide'
-    if 'LIN' in d: return 'linezolid'
-    if 'BDQ' in d: return 'bedaquiline'
-    if 'CFZ' in d: return 'clofazimine'
-    if 'FQ' in d: return 'fluoroquinolone'
-    return d.lower()
+    keys = set()
+    if 'RIF' in d: keys.add('rifampicin')
+    if 'INH' in d: keys.add('isoniazid')
+    if 'PZA' in d: keys.add('pyrazinamide')
+    if 'EMB' in d: keys.add('ethambutol')
+    if 'SM' in d or 'STR' in d: keys.add('streptomycin')
+    if 'LFX' in d: keys.add('levofloxacin')
+    if 'MFX' in d: keys.add('moxifloxacin')
+    if 'KAN' in d: keys.add('kanamycin')
+    if 'AMI' in d or 'AMK' in d: keys.add('amikacin')
+    if 'CAP' in d: keys.add('capreomycin')
+    if 'ETH' in d: keys.add('ethionamide')
+    if 'LIN' in d: keys.add('linezolid')
+    if 'BDQ' in d: keys.add('bedaquiline')
+    if 'CFZ' in d: keys.add('clofazimine')
+    if 'FQ' in d: keys.update({'moxifloxacin', 'levofloxacin'})
+    return keys
 
 def clean_variant_text(text):
     if not text: return ""
@@ -315,9 +316,6 @@ def create_drug_panel_observation(sample_id, resistant_drugs_detected, patient_r
 
 
 def load_patient_mapping(csv_path):
-    """Load sample_id -> Patient reference from CSV (columns: sample_id, patient_uuid).
-    Fill in the CSV manually before running the pipeline.
-    """
     mapping = {}
     if not csv_path or not os.path.isfile(csv_path):
         return mapping
@@ -448,16 +446,11 @@ def process_deeplex_batch(input_path, output_dir, patient_map=None):
                             
                             conf_val = get_val(confs, k)
                             drug_name = str(header_drug[i]).strip()
-                            normalized_drug = normalize_drug_name(drug_name)
+                            panel_keys = normalize_drug_names(drug_name)
 
                             if var_type == 'resistance' and "associated with resistance" in str(conf_val).lower() and "not associated" not in str(conf_val).lower():
-                                all_sample_data[core_id]["resistant_drugs"].add(normalized_drug)
-                                if 'fluoroquinolone' in normalized_drug:
-                                    all_sample_data[core_id]["resistant_drugs"].add('moxifloxacin')
-                                    all_sample_data[core_id]["resistant_drugs"].add('levofloxacin')
-                                    all_sample_data[core_id]["resistant_drugs"].add('ciprofloxacin')
-                                    all_sample_data[core_id]["resistant_drugs"].add('ofloxacin')
-                                
+                                all_sample_data[core_id]["resistant_drugs"].update(panel_keys)
+
                             variant_data = {
                                 'drug_raw': drug_name,
                                 'gene': str(header_gene[i]).strip(),
